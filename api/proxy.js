@@ -19,11 +19,18 @@ export default async function handler(req, res) {
     const text = await response.text();
     let data;
     try { data = JSON.parse(text); } catch(e) { data = { raw: text }; }
+
+    // Extract pagination link header
+    const linkHeader = response.headers.get('link') || '';
+    let nextPageInfo = null;
+    const nextMatch = linkHeader.match(/<[^>]*page_info=([^>&]+)[^>]*>;\s*rel="next"/);
+    if (nextMatch) nextPageInfo = nextMatch[1];
+
     if (!response.ok) {
       return res.status(200).json({ shopify_error: true, status: response.status, data });
     }
-    res.status(200).json(data);
+    res.status(200).json({ ...data, next_page_info: nextPageInfo });
   } catch (e) {
-    res.status(200).json({ error: e.message, stack: e.stack });
+    res.status(200).json({ error: e.message });
   }
 }
