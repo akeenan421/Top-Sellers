@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Top Sellers Booster</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f6f6f7; color: #202223; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; }
+  .container { width: 100%; max-width: 680px; }
+  .header { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
+  .logo { width: 36px; height: 36px; background: #96BF48; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 600; flex-shrink: 0; }
+  .title { font-size: 20px; font-weight: 600; }
+  .subtitle { font-size: 13px; color: #6d7175; margin-top: 2px; }
+  .card { background: white; border: 1px solid #e1e3e5; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+  .card-title { font-size: 15px; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 13px; font-weight: 500; color: #6d7175; margin-bottom: 5px; }
+  .field input, .field select { width: 100%; padding: 8px 10px; border: 1px solid #c9cccf; border-radius: 8px; font-size: 14px; color: #202223; background: white; }
+  .field input:focus, .field select:focus { outline: none; border-color: #96BF48; box-shadow: 0 0 0 2px rgba(150,191,72,0.2); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn { display: block; width: 100%; padding: 10px; background: #96BF48; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; margin-top: 10px; }
+  .btn:hover { background: #7aaa30; }
+  .btn:disabled { background: #c9cccf; cursor: default; }
+  .btn-secondary { background: white; color: #202223; border: 1px solid #c9cccf; }
+  .btn-secondary:hover { background: #f6f6f7; }
+  .status { padding: 10px 12px; border-radius: 8px; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .status.success { background: #f1f8e8; color: #3a6e0a; border: 1px solid #b5d876; }
+  .status.error { background: #fff4f4; color: #d82c0d; border: 1px solid #ffa7a3; }
+  .status.loading { background: #f6f6f7; color: #6d7175; border: 1px solid #e1e3e5; }
+  .spinner { width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hidden { display: none !important; }
+  .upload-zone { border: 2px dashed #c9cccf; border-radius: 8px; padding: 1.5rem 1rem; text-align: center; cursor: pointer; margin-bottom: 10px; }
+  .upload-zone:hover { background: #f6f6f7; }
+  .upload-zone p { font-size: 13px; color: #6d7175; margin-top: 6px; }
+  .upload-zone .link { color: #3a6e0a; font-weight: 500; cursor: pointer; }
+  .or-div { text-align: center; font-size: 12px; color: #6d7175; margin: 8px 0; }
+  textarea { width: 100%; min-height: 80px; padding: 8px; font-family: monospace; font-size: 12px; border: 1px solid #c9cccf; border-radius: 8px; resize: vertical; color: #202223; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; min-height: 28px; }
+  .tag { display: flex; align-items: center; gap: 5px; background: #f1f8e8; border: 1px solid #b5d876; border-radius: 20px; padding: 3px 10px; font-size: 12px; color: #3a6e0a; font-weight: 500; }
+  .tag button { background: none; border: none; color: #3a6e0a; cursor: pointer; font-size: 14px; line-height: 1; padding: 0; }
+  .col-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid #e1e3e5; border-radius: 8px; cursor: pointer; font-size: 13px; margin-bottom: 6px; }
+  .col-item:hover { background: #f6f6f7; }
+  .col-item.selected { border-color: #96BF48; background: #f1f8e8; color: #3a6e0a; font-weight: 600; }
+  .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .preview-grid h4 { font-size: 12px; color: #6d7175; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .product-row { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 6px; font-size: 13px; margin-bottom: 3px; }
+  .product-row .pos { width: 20px; font-size: 11px; color: #6d7175; text-align: center; flex-shrink: 0; }
+  .product-row.promoted { background: #f1f8e8; }
+  .product-row.promoted .name { color: #3a6e0a; font-weight: 600; }
+  .badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; background: #f1f8e8; color: #3a6e0a; border: 1px solid #b5d876; font-weight: 600; flex-shrink: 0; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .step { padding: 0.75rem 1rem; border: 1px solid #e1e3e5; border-radius: 10px; background: white; }
+  .step-num { font-size: 11px; color: #6d7175; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 3px; }
+  .step-label { font-size: 13px; font-weight: 500; }
+  .step.active { border-color: #96BF48; background: #f1f8e8; }
+  .step.active .step-num { color: #3a6e0a; }
+  .step.done { opacity: 0.5; }
+  .note { font-size: 11px; color: #6d7175; text-align: center; margin-top: 8px; }
+  .count-badge { background: #f6f6f7; border: 1px solid #e1e3e5; border-radius: 20px; padding: 2px 9px; font-size: 12px; color: #6d7175; margin-left: auto; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">S</div>
+    <div>
+      <div class="title">Top Sellers Booster</div>
+      <div class="subtitle">Move your best-selling shoes to the top of any collection</div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step active" id="s1"><div class="step-num">Step 1</div><div class="step-label">Connect store</div></div>
+    <div class="step" id="s2"><div class="step-num">Step 2</div><div class="step-label">Add top sellers</div></div>
+    <div class="step" id="s3"><div class="step-num">Step 3</div><div class="step-label">Reorder collection</div></div>
+  </div>
+
+  <!-- PANEL 1: Connect -->
+  <div id="panel1">
+    <div class="card">
+      <div class="card-title">🔗 Connect your Shopify store</div>
+      <div class="field">
+        <label>Store URL</label>
+        <input type="text" id="store-url" placeholder="yourstore.myshopify.com" />
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Client ID</label>
+          <input type="text" id="client-id" placeholder="From Partners Dashboard" />
+        </div>
+        <div class="field">
+          <label>Client Secret</label>
+          <input type="password" id="client-secret" placeholder="From Partners Dashboard" />
+        </div>
+      </div>
+      <div id="connect-status" class="hidden status"></div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#6d7175;margin-top:10px;cursor:pointer;">
+        <input type="checkbox" id="remember-me" style="width:auto;" /> Remember my credentials
+      </label>
+      <button class="btn" onclick="startOAuth()">Connect to Shopify →</button>
+      <p class="note">You'll be redirected to Shopify to authorize access, then brought back here.</p>
+    </div>
+    <div class="card" style="background:#fffbf0; border-color:#ffc453;">
+      <div class="card-title" style="font-size:13px;">📋 Partners Dashboard setup</div>
+      <p style="font-size:12px; color:#6d7175; line-height:1.6;">In your Partners Dashboard app, set the <strong>App URL</strong> and <strong>Allowed redirection URL</strong> to:<br>
+      <code style="background:#f6f6f7; padding:3px 6px; border-radius:4px; font-size:11px; word-break:break-all;" id="this-url"></code></p>
+    </div>
+  </div>
+
+  <!-- PANEL 2: Top Sellers -->
+  <div id="panel2" class="hidden">
+    <div class="card">
+      <div class="card-title">🏆 Top sellers <span class="count-badge" id="sku-count">0 added</span></div>
+      <div class="upload-zone" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+        <div style="font-size:24px;">📂</div>
+        <p><span class="link" onclick="document.getElementById('file-input').click()">Upload a CSV</span> or drag it here</p>
+        <p style="font-size:11px; margin-top:4px;">One product handle or SKU per row</p>
+        <input type="file" id="file-input" accept=".csv,.txt" class="hidden" onchange="handleFile(event)" />
+      </div>
+      <div class="or-div">— or paste directly —</div>
+      <textarea id="sku-input" placeholder="running-shoe-air-max&#10;casual-slip-on-white&#10;leather-boot-chelsea&#10;(one handle or SKU per line)"></textarea>
+      <button class="btn btn-secondary" style="margin-top:8px;" onclick="parseSkus()">Add to list</button>
+      <div class="tag-list" id="tag-list"></div>
+    </div>
+    <button class="btn" id="next2-btn" onclick="goStep3()" disabled>Choose collection →</button>
+  </div>
+
+  <!-- PANEL 3: Collections -->
+  <div id="panel3" class="hidden">
+    <div class="card">
+      <div class="card-title">📚 Select collection</div>
+      <div id="col-loading" class="status loading"><div class="spinner"></div> Loading collections…</div>
+      <div id="collection-list"></div>
+    </div>
+    <div class="card hidden" id="preview-card">
+      <div class="card-title">👁 Preview reorder</div>
+      <div class="preview-grid">
+        <div><h4>Before</h4><div id="before-list"></div></div>
+        <div><h4>After</h4><div id="after-list"></div></div>
+      </div>
+    </div>
+    <div id="apply-status" class="hidden status"></div>
+    <button class="btn hidden" id="apply-btn" onclick="applyReorder()">Push top sellers to front</button>
+    <button class="btn btn-secondary hidden" id="duplicate-btn" onclick="duplicateAndReorder()" style="margin-top:8px;">📋 Duplicate as manual collection &amp; reorder</button>
+  </div>
+</div>
+
+<script>
+  // Load saved credentials if available
+  window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('shopify_saved_creds');
+    if (saved) {
+      try {
+        const { storeUrl, clientId } = JSON.parse(saved);
+        if (storeUrl) document.getElementById('store-url').value = storeUrl;
+        if (clientId) document.getElementById('client-id').value = clientId;
+        document.getElementById('remember-me').checked = true;
+      } catch(e) {}
+    }
+  });
+
+  // Show this page's URL for the Partners Dashboard setup
+  document.getElementById('this-url').textContent = window.location.href.split('?')[0];
+
+  let accessToken = '';
+  let storeUrl = '';
+  let skuList = [];
+  let collections = [];
+  let smartCollectionIds = new Set();
+  let selectedCollection = null;
+  let collectionProducts = [];
+
+  function setStep(n) {
+    [1,2,3].forEach(i => {
+      const el = document.getElementById('s'+i);
+      el.className = 'step' + (i===n?' active':i<n?' done':'');
+    });
+  }
+
+  function showStatus(id, type, msg) {
+    const el = document.getElementById(id);
+    el.className = 'status ' + type;
+    el.innerHTML = type==='loading' ? `<div class="spinner"></div> ${msg}` : msg;
+    el.classList.remove('hidden');
+  }
+
+  // Check if we're returning from OAuth
+  window.addEventListener('load', () => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const shop = params.get('shop');
+    if (code && shop) {
+      // Restore credentials from sessionStorage
+      const clientId = sessionStorage.getItem('shopify_client_id');
+      const clientSecret = sessionStorage.getItem('shopify_client_secret');
+      storeUrl = shop;
+      if (clientId && clientSecret) {
+        exchangeToken(shop, code, clientId, clientSecret);
+      } else {
+        document.getElementById('panel1').classList.remove('hidden');
+        showStatus('connect-status', 'error', 'Session expired. Please reconnect.');
+      }
+    }
+  });
+
+  function startOAuth() {
+    storeUrl = document.getElementById('store-url').value.trim().replace(/^https?:\/\//,'').replace(/\/$/,'');
+    const clientId = document.getElementById('client-id').value.trim();
+    const clientSecret = document.getElementById('client-secret').value.trim();
+    if (!storeUrl || !clientId || !clientSecret) {
+      showStatus('connect-status', 'error', '⚠️ Please fill in all three fields.');
+      return;
+    }
+    // Save credentials if remember me is checked (note: client secret is not saved for security)
+    if (document.getElementById('remember-me').checked) {
+      localStorage.setItem('shopify_saved_creds', JSON.stringify({ storeUrl, clientId }));
+    } else {
+      localStorage.removeItem('shopify_saved_creds');
+    }
+    sessionStorage.setItem('shopify_client_id', clientId);
+    sessionStorage.setItem('shopify_client_secret', clientSecret);
+    sessionStorage.setItem('shopify_store', storeUrl);
+    const redirectUri = encodeURIComponent(window.location.href.split('?')[0]);
+    const scopes = 'read_products,write_products,read_collections,write_collections';
+    const nonce = Math.random().toString(36).substring(2);
+    sessionStorage.setItem('shopify_nonce', nonce);
+    const authUrl = `https://${storeUrl}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes}&redirect_uri=${redirectUri}&state=${nonce}`;
+    window.location.href = authUrl;
+  }
+
+  async function exchangeToken(shop, code, clientId, clientSecret) {
+    document.getElementById('panel1').classList.remove('hidden');
+    showStatus('connect-status', 'loading', 'Completing authorization…');
+    try {
+      const res = await fetch('/api/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shop, code, client_id: clientId, client_secret: clientSecret })
+      });
+      const data = await res.json();
+      if (data.access_token) {
+        accessToken = data.access_token;
+        storeUrl = shop;
+        showStatus('connect-status', 'success', '✅ Connected! Loading your store…');
+        setTimeout(() => {
+          document.getElementById('panel1').classList.add('hidden');
+          document.getElementById('panel2').classList.remove('hidden');
+          setStep(2);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }, 800);
+      } else {
+        showStatus('connect-status', 'error', '⚠️ Authorization failed. Check your Client ID and Secret.');
+      }
+    } catch(e) {
+      showStatus('connect-status', 'error', '⚠️ Could not connect. Make sure this URL is set as the redirect URL in your Partners Dashboard app.');
+    }
+  }
+
+  async function shopifyFetch(path, method='GET', body=null) {
+    const res = await fetch('/api/proxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ shop: storeUrl, path, method, token: accessToken, body })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.shopify_error) {
+      throw new Error(`Shopify ${data.status}: ${JSON.stringify(data.data)}`);
+    }
+    if (data.error) throw new Error(data.error);
+    return data;
+  }
+
+  function parseSkus() {
+    const raw = document.getElementById('sku-input').value;
+    const lines = raw.split('\n').map(l => l.trim().replace(/^["']|["']$/g,'')).filter(Boolean);
+    lines.forEach(l => { if (!skuList.includes(l)) skuList.push(l); });
+    renderTags();
+    document.getElementById('sku-input').value = '';
+  }
+
+  function renderTags() {
+    document.getElementById('tag-list').innerHTML = skuList.map((s,i) =>
+      `<div class="tag">${s}<button onclick="removeTag(${i})">×</button></div>`
+    ).join('');
+    document.getElementById('sku-count').textContent = skuList.length + ' added';
+    document.getElementById('next2-btn').disabled = skuList.length === 0;
+  }
+
+  function removeTag(i) { skuList.splice(i,1); renderTags(); }
+
+  function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => { document.getElementById('sku-input').value = ev.target.result; parseSkus(); };
+    reader.readAsText(file);
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => { document.getElementById('sku-input').value = ev.target.result; parseSkus(); };
+    reader.readAsText(file);
+  }
+
+  async function goStep3() {
+    document.getElementById('panel2').classList.add('hidden');
+    document.getElementById('panel3').classList.remove('hidden');
+    setStep(3);
+    try {
+      const [c1, c2] = await Promise.all([
+        shopifyFetch('custom_collections.json?limit=250'),
+        shopifyFetch('smart_collections.json?limit=250')
+      ]);
+      collections = [...(c1.custom_collections||[]), ...(c2.smart_collections||[])];
+      smartCollectionIds = new Set((c2.smart_collections||[]).map(c => c.id));
+      document.getElementById('col-loading').classList.add('hidden');
+      const list = document.getElementById('collection-list');
+      if (!collections.length) { list.innerHTML = '<p style="font-size:13px;color:#6d7175">No collections found.</p>'; return; }
+      list.innerHTML = collections.map(c =>
+        `<div class="col-item" id="col-${c.id}" onclick="selectCollection(${c.id},'${c.title.replace(/'/g,"\\'")}')">
+          📁 ${c.title}
+          <span style="font-size:11px;color:#6d7175;margin-left:auto">${c.products_count||''} products</span>
+        </div>`
+      ).join('');
+    } catch(e) {
+      showStatus('col-loading', 'error', '⚠️ Could not load collections. HTTP error: ' + e.message);
+    }
+  }
+
+  async function selectCollection(id, title) {
+    document.querySelectorAll('.col-item').forEach(el => el.classList.remove('selected'));
+    document.getElementById('col-'+id).classList.add('selected');
+    const colObj = collections.find(c => c.id === id);
+    const isSmart = smartCollectionIds.has(id);
+    selectedCollection = { id, title, type: isSmart ? 'smart' : 'custom' };
+    document.getElementById('preview-card').classList.add('hidden');
+    document.getElementById('apply-btn').classList.add('hidden');
+    document.getElementById('apply-status').classList.add('hidden');
+    document.getElementById('col-loading').classList.remove('hidden');
+    showStatus('col-loading', 'loading', `Loading products from "${title}"…`);
+    try {
+      // Paginate through all products
+      let allProducts = [];
+      let pageInfo = null;
+      let page = 1;
+      do {
+        const url = pageInfo
+          ? `collections/${id}/products.json?limit=250&fields=id,title,handle,variants&page_info=${pageInfo}`
+          : `collections/${id}/products.json?limit=250&fields=id,title,handle,variants`;
+        const data = await shopifyFetch(url);
+        allProducts = allProducts.concat(data.products || []);
+        pageInfo = data.next_page_info || null;
+        showStatus('col-loading', 'loading', `Loading products… ${allProducts.length} so far`);
+        page++;
+        if (page > 50) break; // safety cap
+      } while (pageInfo);
+      collectionProducts = allProducts;
+      document.getElementById('col-loading').classList.add('hidden');
+      renderPreview();
+    } catch(e) {
+      showStatus('col-loading', 'error', '⚠️ Could not load products: ' + e.message);
+    }
+  }
+
+  function renderPreview() {
+    document.getElementById('preview-card').classList.remove('hidden');
+    const promoted = [], rest = [];
+    collectionProducts.forEach(p => {
+      const isTop = skuList.some(s => p.title && p.title.toLowerCase() === s.toLowerCase());
+      (isTop ? promoted : rest).push(p);
+    });
+    const show = collectionProducts.slice(0,8);
+    document.getElementById('before-list').innerHTML = show.map((p,i) =>
+      `<div class="product-row"><span class="pos">${i+1}</span><span class="name">${p.title}</span></div>`
+    ).join('');
+    const reordered = [...promoted, ...rest].slice(0,8);
+    document.getElementById('after-list').innerHTML = reordered.map((p,i) => {
+      const isP = promoted.includes(p);
+      return `<div class="product-row ${isP?'promoted':''}"><span class="pos">${i+1}</span><span class="name">${p.title}</span>${isP?'<span class="badge">top seller</span>':''}</div>`;
+    }).join('');
+    const btn = document.getElementById('apply-btn');
+    const dupBtn = document.getElementById('duplicate-btn');
+    const isSmart = selectedCollection.type === 'smart';
+    if (isSmart) {
+      btn.classList.add('hidden');
+      dupBtn.classList.remove('hidden');
+      dupBtn.textContent = `📋 Duplicate "${selectedCollection.title}" as manual & push ${promoted.length} top seller${promoted.length!==1?'s':''} to front`;
+      dupBtn.disabled = promoted.length === 0;
+    } else {
+      btn.classList.remove('hidden');
+      dupBtn.classList.add('hidden');
+      btn.textContent = `Push ${promoted.length} top seller${promoted.length!==1?'s':''} to front of "${selectedCollection.title}"`;
+      btn.disabled = promoted.length === 0;
+    }
+  }
+
+  function getReordered() {
+    const promoted = [], rest = [];
+    collectionProducts.forEach(p => {
+      const isTop = skuList.some(s => p.title && p.title.toLowerCase() === s.toLowerCase());
+      (isTop ? promoted : rest).push(p);
+    });
+    return [...promoted, ...rest];
+  }
+
+  async function applyReorder() {
+    document.getElementById('apply-btn').disabled = true;
+    showStatus('apply-status', 'loading', 'Reordering collection…');
+    const reordered = getReordered();
+    // Only send moves for top sellers going to the front (positions 1 through N)
+    const promoted = reordered.filter(p => skuList.some(s => p.title && p.title.toLowerCase() === s.toLowerCase()));
+    const moves = promoted.map((p, i) => ({ id: p.id, position: i + 1 }));
+    try {
+      // Send in batches of 250
+      for (let i = 0; i < moves.length; i += 250) {
+        const batch = moves.slice(i, i + 250);
+        await shopifyFetch(`custom_collections/${selectedCollection.id}/products/reorder.json`, 'POST', { moves: batch });
+      }
+      showStatus('apply-status', 'success', `✅ Done! ${promoted.length} top seller${promoted.length!==1?'s':''} moved to the top.`);
+    } catch(e) {
+      showStatus('apply-status', 'error', '⚠️ Reorder failed: ' + e.message);
+    }
+    document.getElementById('apply-btn').disabled = false;
+  }
+
+  async function duplicateAndReorder() {
+    document.getElementById('duplicate-btn').disabled = true;
+    const newTitle = selectedCollection.title + ' (Top Sellers)';
+
+    // Step 1: Create new manual collection
+    showStatus('apply-status', 'loading', 'Step 1/3: Creating new manual collection…');
+    let newCollection;
+    try {
+      const res = await shopifyFetch('custom_collections.json', 'POST', {
+        custom_collection: { title: newTitle, sort_order: 'manual' }
+      });
+      newCollection = res.custom_collection;
+    } catch(e) {
+      showStatus('apply-status', 'error', '⚠️ Could not create collection: ' + e.message);
+      document.getElementById('duplicate-btn').disabled = false;
+      return;
+    }
+
+    // Step 2: Add products in chunks of 15 to stay under Vercel timeout
+    const reordered = getReordered();
+    const chunkSize = 15;
+    let totalAdded = 0;
+    try {
+      for (let i = 0; i < reordered.length; i += chunkSize) {
+        const chunk = reordered.slice(i, i + chunkSize).map(p => p.id);
+        showStatus('apply-status', 'loading', `Step 2/3: Adding products… ${Math.min(i + chunkSize, reordered.length)}/${reordered.length} (keep this tab open)`);
+        const addRes = await fetch('/api/addproducts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            shop: storeUrl,
+            token: accessToken,
+            collection_id: newCollection.id,
+            product_ids: chunk
+          })
+        });
+        if (!addRes.ok) throw new Error(`Server error ${addRes.status}`);
+        const addData = await addRes.json();
+        totalAdded += addData.added || 0;
+      }
+    } catch(e) {
+      showStatus('apply-status', 'error', '⚠️ Error adding products: ' + e.message);
+      document.getElementById('duplicate-btn').disabled = false;
+      return;
+    }
+
+    // Step 3: Reorder - only move top sellers to front positions
+    showStatus('apply-status', 'loading', 'Step 3/3: Reordering top sellers to front…');
+    await new Promise(r => setTimeout(r, 2000));
+    const promoted2 = reordered.filter(p => skuList.some(s => p.title && p.title.toLowerCase() === s.toLowerCase()));
+    const moves = promoted2.map((p, i) => ({ id: p.id, position: i + 1 }));
+    try {
+      for (let i = 0; i < moves.length; i += 250) {
+        const batch = moves.slice(i, i + 250);
+        await shopifyFetch(`custom_collections/${newCollection.id}/products/reorder.json`, 'POST', { moves: batch });
+      }
+      showStatus('apply-status', 'success', `✅ Done! Created "${newTitle}" with ${reordered.length} products and ${promoted2.length} top seller${promoted2.length!==1?'s':''} at the front.`);
+    } catch(e) {
+      showStatus('apply-status', 'error', `⚠️ Collection "${newTitle}" created with all products, but reorder failed: ${e.message}`);
+    }
+    document.getElementById('duplicate-btn').disabled = false;
+  }
+</script>
+</body>
+</html>
+EOF
