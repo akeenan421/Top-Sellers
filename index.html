@@ -243,7 +243,12 @@
       body: JSON.stringify({ shop: storeUrl, path, method, token: accessToken, body })
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
+    const data = await res.json();
+    if (data.shopify_error) {
+      throw new Error(`Shopify ${data.status}: ${JSON.stringify(data.data)}`);
+    }
+    if (data.error) throw new Error(data.error);
+    return data;
   }
 
   function parseSkus() {
