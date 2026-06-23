@@ -6,14 +6,12 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end('Method Not Allowed');
 
   const { shop, token, collection_id, product_ids } = req.body;
-  const results = { added: 0, failed: 0, errors: [] };
-
+  const results = { added: 0, failed: 0 };
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   for (let i = 0; i < product_ids.length; i++) {
-    let attempts = 0;
     let success = false;
-    while (attempts < 3 && !success) {
+    for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const response = await fetch(`https://${shop}/admin/api/2024-07/collects.json`, {
           method: 'POST',
@@ -23,21 +21,16 @@ export default async function handler(req, res) {
           },
           body: JSON.stringify({ collect: { product_id: product_ids[i], collection_id } })
         });
-        if (response.status === 429) {
-          await sleep(2000);
-          attempts++;
-          continue;
-        }
+        if (response.status === 429) { await sleep(2000); continue; }
         results.added++;
         success = true;
+        break;
       } catch(e) {
-        attempts++;
         await sleep(1000);
       }
     }
     if (!success) results.failed++;
-    // Stay well under 2 calls/second
-    await sleep(600);
+    await sleep(550);
   }
 
   res.status(200).json(results);
