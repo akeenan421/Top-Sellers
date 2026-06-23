@@ -424,7 +424,9 @@
     try {
       // Get existing collects to find collect IDs for position updates
       showStatus('apply-status', 'loading', 'Fetching collection data…');
+      console.log('Fetching collects for collection:', selectedCollection.id);
       const collectsData = await shopifyFetch(`collects.json?collection_id=${selectedCollection.id}&limit=250`);
+      console.log('Collects response:', JSON.stringify(collectsData).substring(0, 200));
       const collectMap = {};
       (collectsData.collects || []).forEach(c => { collectMap[c.product_id] = c.id; });
       
