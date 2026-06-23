@@ -11,7 +11,8 @@ export default async function handler(req, res) {
       method: method || 'GET',
       headers: {
         'X-Shopify-Access-Token': token,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       }
     };
     if (body) opts.body = JSON.stringify(body);
@@ -31,6 +32,9 @@ export default async function handler(req, res) {
     }
     res.status(200).json({ ...data, next_page_info: nextPageInfo });
   } catch (e) {
+    res.status(200).json({ error: e.message });
+  }
+}
     res.status(200).json({ error: e.message });
   }
 }
