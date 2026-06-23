@@ -422,27 +422,20 @@
       return;
     }
     try {
-      // Get existing collects to find collect IDs for position updates
-      showStatus('apply-status', 'loading', 'Fetching collection data…');
-      console.log('Fetching collects for collection:', selectedCollection.id);
-      const collectsData = await shopifyFetch(`collects.json?collection_id=${selectedCollection.id}&limit=250`);
-      console.log('Collects response:', JSON.stringify(collectsData).substring(0, 200));
-      const collectMap = {};
-      (collectsData.collects || []).forEach(c => { collectMap[c.product_id] = c.id; });
-      
-      showStatus('apply-status', 'loading', `Updating positions for ${promoted.length} top sellers…`);
-      for (let i = 0; i < promoted.length; i++) {
-        const collectId = collectMap[promoted[i].id];
-        if (collectId) {
-          await shopifyFetch(`collects/${collectId}.json`, 'PUT', {
-            collect: { id: collectId, position: i + 1 }
-          });
-          await new Promise(r => setTimeout(r, 600));
-          if (i % 10 === 0) showStatus('apply-status', 'loading', `Updating positions… ${i+1}/${promoted.length}`);
-        }
-      }
+      showStatus('apply-status', 'loading', `Reordering ${promoted.length} top sellers…`);
+      // Shopify reorder endpoint expects: { moves: [{ id: productId, position: 1 }, ...] }
+      // position is 1-based, must be sent as number
+      const movesPayload = promoted.map((p, i) => ({ id: String(p.id), position: String(i + 1) }));
+      console.log('Sending moves:', JSON.stringify(movesPayload.slice(0,3)));
+      const result = await shopifyFetch(
+        `custom_collections/${selectedCollection.id}/products/reorder.json`,
+        'POST',
+        { moves: movesPayload }
+      );
+      console.log('Reorder result:', JSON.stringify(result));
       showStatus('apply-status', 'success', `✅ Done! ${promoted.length} top seller${promoted.length!==1?'s':''} moved to the top.`);
     } catch(e) {
+      console.error('Reorder error full:', e);
       showStatus('apply-status', 'error', '⚠️ Reorder failed: ' + e.message);
     }
     document.getElementById('apply-btn').disabled = false;
