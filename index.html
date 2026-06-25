@@ -32,6 +32,12 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .hidden { display: none !important; }
 
+  /* Progress bar */
+  .progress-wrap { width: 100%; background: #e1e3e5; border-radius: 20px; height: 6px; margin-top: 8px; overflow: hidden; }
+  body.dark .progress-wrap { background: #2e2e2e; }
+  .progress-bar { height: 6px; background: #96BF48; border-radius: 20px; width: 0%; transition: width 0.1s linear; }
+  .status.loading .progress-wrap { display: block; }
+
   /* Dark mode */
   body.dark { background: #0a0a0a; color: #e8e8e8; }
   body.dark .card { background: #1a1a1a; border-color: #2e2e2e; }
@@ -205,9 +211,10 @@
     const saved = localStorage.getItem('shopify_saved_creds');
     if (saved) {
       try {
-        const { storeUrl, clientId } = JSON.parse(saved);
+        const { storeUrl, clientId, clientSecret } = JSON.parse(saved);
         if (storeUrl) document.getElementById('store-url').value = storeUrl;
         if (clientId) document.getElementById('client-id').value = clientId;
+        if (clientSecret) document.getElementById('client-secret').value = clientSecret;
         document.getElementById('remember-me').checked = true;
       } catch(e) {}
     }
@@ -231,11 +238,23 @@
     });
   }
 
-  function showStatus(id, type, msg) {
+  function showStatus(id, type, msg, progress=null) {
     const el = document.getElementById(id);
     el.className = 'status ' + type;
-    el.innerHTML = type==='loading' ? `<div class="spinner"></div> ${msg}` : msg;
+    if (type === 'loading') {
+      const progressBar = progress !== null
+        ? `<div class="progress-wrap"><div class="progress-bar" id="${id}-bar" style="width:${progress}%"></div></div>`
+        : (el.querySelector('.progress-wrap') ? el.querySelector('.progress-wrap').outerHTML : '');
+      el.innerHTML = `<div class="spinner"></div> <span>${msg}</span>${progressBar}`;
+    } else {
+      el.innerHTML = msg;
+    }
     el.classList.remove('hidden');
+  }
+
+  function setProgress(id, pct) {
+    const bar = document.getElementById(id + '-bar');
+    if (bar) bar.style.width = pct + '%';
   }
 
   // Check if we're returning from OAuth
@@ -245,8 +264,8 @@
     const shop = params.get('shop');
     if (code && shop) {
       // Restore credentials from sessionStorage
-      const clientId = sessionStorage.getItem('shopify_client_id');
-      const clientSecret = sessionStorage.getItem('shopify_client_secret');
+      const clientId = localStorage.getItem('shopify_client_id');
+      const clientSecret = localStorage.getItem('shopify_client_secret');
       storeUrl = shop;
       if (clientId && clientSecret) {
         exchangeToken(shop, code, clientId, clientSecret);
@@ -267,17 +286,17 @@
     }
     // Save credentials if remember me is checked (note: client secret is not saved for security)
     if (document.getElementById('remember-me').checked) {
-      localStorage.setItem('shopify_saved_creds', JSON.stringify({ storeUrl, clientId }));
+      localStorage.setItem('shopify_saved_creds', JSON.stringify({ storeUrl, clientId, clientSecret }));
     } else {
       localStorage.removeItem('shopify_saved_creds');
     }
-    sessionStorage.setItem('shopify_client_id', clientId);
-    sessionStorage.setItem('shopify_client_secret', clientSecret);
-    sessionStorage.setItem('shopify_store', storeUrl);
+    localStorage.setItem('shopify_client_id', clientId);
+    localStorage.setItem('shopify_client_secret', clientSecret);
+    localStorage.setItem('shopify_store', storeUrl);
     const redirectUri = encodeURIComponent('https://top-sellers.vercel.app');
     const scopes = 'read_products,write_products,read_collections,write_collections';
     const nonce = Math.random().toString(36).substring(2);
-    sessionStorage.setItem('shopify_nonce', nonce);
+    localStorage.setItem('shopify_nonce', nonce);
     const authUrl = `https://${storeUrl}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes}&redirect_uri=${redirectUri}&state=${nonce}`;
     window.location.href = authUrl;
   }
@@ -530,15 +549,17 @@
       return;
     }
 
-    // Step 2: Add products in chunks of 15, counter updates after each chunk completes
+    // Step 2: Add products in chunks of 15, animate counter smoothly between chunks
     const reordered = getReordered();
     const chunkSize = 15;
     let totalAdded = 0;
-    showStatus('apply-status', 'loading', `Step 2/3: Adding products… 0/${reordered.length} (keep this tab open)`);
+    showStatus('apply-status', 'loading', `Step 2/3: Adding products… 0/${reordered.length} (keep this tab open)`, 0);
     try {
       for (let i = 0; i < reordered.length; i += chunkSize) {
         const chunk = reordered.slice(i, i + chunkSize).map(p => p.id);
-        const addRes = await fetch('/api/addproducts', {
+        const chunkEnd = Math.min(i + chunkSize, reordered.length);
+        // Fire off server request
+        const addPromise = fetch('/api/addproducts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -548,9 +569,28 @@
             product_ids: chunk
           })
         });
+        // Animate counter one by one while server processes
+        const animDuration = 550 * chunk.length;
+        const animStart = totalAdded;
+        const animEnd = chunkEnd;
+        const startTime = Date.now();
+        await new Promise(resolve => {
+          function tick() {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / animDuration, 1);
+            const current = Math.floor(animStart + (animEnd - animStart) * progress);
+            const pct = Math.round((current / reordered.length) * 100);
+            showStatus('apply-status', 'loading', `Step 2/3: Adding products… ${current}/${reordered.length} (keep this tab open)`, pct);
+            if (progress < 1) requestAnimationFrame(tick);
+            else resolve();
+          }
+          requestAnimationFrame(tick);
+        });
+        // Wait for server to finish
+        const addRes = await addPromise;
         if (!addRes.ok) throw new Error(`Server error ${addRes.status}`);
         const addData = await addRes.json();
-        totalAdded += addData.added || 0;
+        totalAdded = chunkEnd;
         showStatus('apply-status', 'loading', `Step 2/3: Adding products… ${totalAdded}/${reordered.length} (keep this tab open)`);
       }
     } catch(e) {
