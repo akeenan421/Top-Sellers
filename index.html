@@ -186,6 +186,7 @@
         <div><h4>After</h4><div id="after-list"></div></div>
       </div>
     </div>
+    <div id="unmatched-list"></div>
     <div id="apply-status" class="hidden status"></div>
     <button class="btn hidden" id="apply-btn" onclick="applyReorder()">Push top sellers to front</button>
     <button class="btn btn-secondary hidden" id="duplicate-btn" onclick="duplicateAndReorder()" style="margin-top:8px;">📋 Duplicate as manual collection &amp; reorder</button>
@@ -491,6 +492,30 @@
       dupBtn.classList.add('hidden');
       btn.textContent = `Push ${promoted.length} top seller${promoted.length!==1?'s':''} to front of "${selectedCollection.title}"`;
       btn.disabled = promoted.length === 0;
+    }
+
+    // Debug: log first few from each side
+    console.log('=== CSV titles (first 5) ===');
+    skuList.slice(0,5).forEach(s => console.log(JSON.stringify(s)));
+    console.log('=== Collection titles (first 5) ===');
+    collectionProducts.slice(0,5).forEach(p => console.log(JSON.stringify(p.title)));
+    console.log('=== Looking for Jordan 4 Toro ===');
+    const toroMatch = collectionProducts.find(p => p.title && p.title.toLowerCase().includes('toro'));
+    console.log('Toro in collection:', toroMatch ? JSON.stringify(toroMatch.title) : 'NOT FOUND');
+    const toroInCsv = skuList.find(s => s.toLowerCase().includes('toro'));
+    console.log('Toro in CSV:', toroInCsv ? JSON.stringify(toroInCsv) : 'NOT FOUND');
+
+    // Show unmatched titles
+    const matchedTitles = new Set(promoted.map(p => p.title.toLowerCase()));
+    const unmatched = skuList.filter(s => !collectionProducts.some(p => p.title && p.title.toLowerCase() === s.toLowerCase()));
+    const unmatchedDiv = document.getElementById('unmatched-list');
+    if (unmatched.length > 0) {
+      unmatchedDiv.innerHTML = `<div style="margin-top:10px;padding:10px;background:var(--warn-bg, #fffbf0);border:1px solid #ffc453;border-radius:8px;font-size:12px;">
+        <strong>⚠️ ${unmatched.length} title${unmatched.length!==1?'s':''} from your CSV not found in this collection:</strong>
+        <div style="margin-top:6px;color:#6d7175;max-height:80px;overflow-y:auto;">${unmatched.slice(0,20).map(s => `<div>${s}</div>`).join('')}${unmatched.length>20?`<div>...and ${unmatched.length-20} more</div>`:''}</div>
+      </div>`;
+    } else {
+      unmatchedDiv.innerHTML = '';
     }
   }
 
