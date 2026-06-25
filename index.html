@@ -173,6 +173,7 @@
 
   <!-- PANEL 3: Collections -->
   <div id="panel3" class="hidden">
+    <button class="btn btn-secondary" onclick="goBack()" style="margin-bottom:10px;">← Back to top sellers</button>
     <div class="card">
       <div class="card-title">📚 Select collection</div>
       <div id="col-loading" class="status loading"><div class="spinner"></div> Loading collections…</div>
@@ -192,6 +193,16 @@
 </div>
 
 <script>
+  function goBack() {
+    document.getElementById('panel3').classList.add('hidden');
+    document.getElementById('panel2').classList.remove('hidden');
+    document.getElementById('apply-status').classList.add('hidden');
+    document.getElementById('apply-btn').classList.add('hidden');
+    document.getElementById('duplicate-btn').classList.add('hidden');
+    document.getElementById('preview-card').classList.add('hidden');
+    setStep(2);
+  }
+
   function toggleDark() {
     const isDark = document.body.classList.toggle('dark');
     document.getElementById('toggle-track').classList.toggle('on', isDark);
