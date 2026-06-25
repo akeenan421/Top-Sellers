@@ -530,19 +530,14 @@
       return;
     }
 
-    // Step 2: Add products in chunks of 15, animate counter within each chunk
+    // Step 2: Add products in chunks of 15, counter updates after each chunk completes
     const reordered = getReordered();
     const chunkSize = 15;
     let totalAdded = 0;
+    showStatus('apply-status', 'loading', `Step 2/3: Adding products… 0/${reordered.length} (keep this tab open)`);
     try {
       for (let i = 0; i < reordered.length; i += chunkSize) {
         const chunk = reordered.slice(i, i + chunkSize).map(p => p.id);
-        const chunkEnd = Math.min(i + chunkSize, reordered.length);
-        // Animate counter from i+1 up to chunkEnd one by one
-        for (let c = i + 1; c <= chunkEnd; c++) {
-          showStatus('apply-status', 'loading', `Step 2/3: Adding products… ${c}/${reordered.length} (keep this tab open)`);
-          await new Promise(r => setTimeout(r, Math.floor(550 / chunkSize)));
-        }
         const addRes = await fetch('/api/addproducts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -556,6 +551,7 @@
         if (!addRes.ok) throw new Error(`Server error ${addRes.status}`);
         const addData = await addRes.json();
         totalAdded += addData.added || 0;
+        showStatus('apply-status', 'loading', `Step 2/3: Adding products… ${totalAdded}/${reordered.length} (keep this tab open)`);
       }
     } catch(e) {
       showStatus('apply-status', 'error', '⚠️ Error adding products: ' + e.message);
