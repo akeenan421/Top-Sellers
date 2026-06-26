@@ -370,7 +370,7 @@
 
   function parseSkus() {
     const raw = document.getElementById('sku-input').value;
-    const lines = raw.split('\n').map(l => l.trim().replace(/^["']|["']$/g,'')).filter(Boolean);
+    const lines = raw.split('\n').map(l => l.trim().replace(/^[\s"']+|[\s"']+$/g,'').replace(/^"|"$/g,'')).filter(Boolean);
     lines.forEach(l => { if (!skuList.includes(l)) skuList.push(l); });
     renderTags();
     document.getElementById('sku-input').value = '';
@@ -456,6 +456,7 @@
         if (page > 50) break; // safety cap
       } while (pageInfo);
       collectionProducts = allProducts;
+      console.log('Total products loaded:', allProducts.length);
       document.getElementById('col-loading').classList.add('hidden');
       renderPreview();
     } catch(e) {
