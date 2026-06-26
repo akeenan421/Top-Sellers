@@ -156,7 +156,7 @@
   <!-- PANEL 2: Top Sellers -->
   <div id="panel2" class="hidden">
     <div class="card">
-      <div class="card-title">🏆 Top sellers <span class="count-badge" id="sku-count">0 added</span></div>
+      <div class="card-title">🏆 Top sellers <span class="count-badge" id="sku-count">0 added</span><button onclick="clearAll()" style="margin-left:auto;background:none;border:1px solid #c9cccf;border-radius:6px;padding:3px 10px;font-size:12px;color:#6d7175;cursor:pointer;">Remove all</button></div>
       <div class="upload-zone" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
         <div style="font-size:24px;">📂</div>
         <p><span class="link" onclick="document.getElementById('file-input').click()">Upload a CSV</span> or drag it here</p>
@@ -385,6 +385,7 @@
   }
 
   function removeTag(i) { skuList.splice(i,1); renderTags(); }
+  function clearAll() { skuList = []; renderTags(); document.getElementById('sku-input').value = ''; }
 
   function handleFile(e) {
     const file = e.target.files[0];
