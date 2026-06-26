@@ -506,6 +506,11 @@
     console.log('Toro in collection:', toroMatch ? JSON.stringify(toroMatch.title) : 'NOT FOUND');
     const toroInCsv = skuList.find(s => s.toLowerCase().includes('toro'));
     console.log('Toro in CSV:', toroInCsv ? JSON.stringify(toroInCsv) : 'NOT FOUND');
+    console.log('Toro CSV raw chars:', toroInCsv ? [...toroInCsv].slice(0,5).map(c => c.charCodeAt(0)) : 'N/A');
+    console.log('Toro collection raw chars:', toroMatch ? [...toroMatch.title].slice(0,5).map(c => c.charCodeAt(0)) : 'N/A');
+    if (toroMatch && toroInCsv) {
+      console.log('includes test:', toroMatch.title.toLowerCase().includes(toroInCsv.toLowerCase()));
+    }
 
     // Show unmatched titles
     const matchedTitles = new Set(promoted.map(p => p.title.toLowerCase()));
