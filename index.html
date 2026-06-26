@@ -470,7 +470,7 @@
     document.getElementById('preview-card').classList.remove('hidden');
     const promoted = [], rest = [];
     collectionProducts.forEach(p => {
-      const matchIndex = skuList.findIndex(s => p.title && (p.title.toLowerCase() === s.toLowerCase() || p.title.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(p.title.toLowerCase())));
+      const matchIndex = skuList.findIndex(s => p.title && p.title.toLowerCase() === s.toLowerCase());
       if (matchIndex !== -1) {
         promoted.push({ product: p, rank: matchIndex });
       } else {
@@ -521,7 +521,7 @@
     }
 
     // Show unmatched titles
-    const unmatched = skuList.filter(s => !collectionProducts.some(p => p.title && (p.title.toLowerCase() === s.toLowerCase() || p.title.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(p.title.toLowerCase()))));
+    const unmatched = skuList.filter(s => !collectionProducts.some(p => p.title && p.title.toLowerCase() === s.toLowerCase()));
     const unmatchedDiv = document.getElementById('unmatched-list');
     if (unmatched.length > 0) {
       const unmatchedHtml = unmatched.slice(0,20).map(s => '<div>' + s + '</div>').join('') + (unmatched.length > 20 ? '<div>...and ' + (unmatched.length - 20) + ' more</div>' : '');
@@ -534,7 +534,7 @@
   function getReordered() {
     const promoted = [], rest = [];
     collectionProducts.forEach(p => {
-      const matchIndex = skuList.findIndex(s => p.title && (p.title.toLowerCase() === s.toLowerCase() || p.title.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(p.title.toLowerCase())));
+      const matchIndex = skuList.findIndex(s => p.title && p.title.toLowerCase() === s.toLowerCase());
       if (matchIndex !== -1) {
         promoted.push({ product: p, rank: matchIndex });
       } else {
