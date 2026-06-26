@@ -370,7 +370,7 @@
 
   function parseSkus() {
     const raw = document.getElementById('sku-input').value;
-    const lines = raw.split('\n').map(l => l.trim().replace(/^[\s"']+|[\s"']+$/g,'').replace(/^"|"$/g,'')).filter(Boolean);
+    const lines = raw.split('\n').map(l => l.trim().replace(/^[\s"']+|[\s"']+$/g,'').replace(/^"|"$/g,'')).filter(l => l && l.toLowerCase() !== 'title' && l.toLowerCase() !== 'handle');
     lines.forEach(l => { if (!skuList.includes(l)) skuList.push(l); });
     renderTags();
     document.getElementById('sku-input').value = '';
@@ -468,7 +468,7 @@
     document.getElementById('preview-card').classList.remove('hidden');
     const promoted = [], rest = [];
     collectionProducts.forEach(p => {
-      const isTop = skuList.some(s => p.title && p.title.toLowerCase() === s.toLowerCase());
+      const isTop = skuList.some(s => p.title && (p.title.toLowerCase() === s.toLowerCase() || p.title.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(p.title.toLowerCase())));
       (isTop ? promoted : rest).push(p);
     });
     const show = collectionProducts.slice(0,8);
@@ -523,7 +523,7 @@
   function getReordered() {
     const promoted = [], rest = [];
     collectionProducts.forEach(p => {
-      const isTop = skuList.some(s => p.title && p.title.toLowerCase() === s.toLowerCase());
+      const isTop = skuList.some(s => p.title && (p.title.toLowerCase() === s.toLowerCase() || p.title.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(p.title.toLowerCase())));
       (isTop ? promoted : rest).push(p);
     });
     return [...promoted, ...rest];
