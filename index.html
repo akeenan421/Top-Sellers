@@ -468,23 +468,24 @@
   function renderPreview() {
     document.getElementById('preview-card').classList.remove('hidden');
     const promoted = [], rest = [];
-    const toroProduct = collectionProducts.find(p => p.title && p.title.toLowerCase().includes('toro'));
-    const toroSku = skuList.find(s => s.toLowerCase().includes('toro'));
-    console.log('AT MATCH TIME - Toro product:', JSON.stringify(toroProduct?.title));
-    console.log('AT MATCH TIME - Toro sku:', JSON.stringify(toroSku));
-    if (toroProduct && toroSku) console.log('AT MATCH TIME - includes:', toroProduct.title.toLowerCase().includes(toroSku.toLowerCase()));
     collectionProducts.forEach(p => {
-      const isTop = skuList.some(s => p.title && (p.title.toLowerCase() === s.toLowerCase() || p.title.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(p.title.toLowerCase())));
-      (isTop ? promoted : rest).push(p);
+      const matchIndex = skuList.findIndex(s => p.title && (p.title.toLowerCase() === s.toLowerCase() || p.title.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(p.title.toLowerCase())));
+      if (matchIndex !== -1) {
+        promoted.push({ product: p, rank: matchIndex });
+      } else {
+        rest.push(p);
+      }
     });
-    console.log('AT MATCH TIME - promoted count:', promoted.length);
+    promoted.sort((a, b) => a.rank - b.rank);
+    const promotedProducts = promoted.map(x => x.product);
+    const restProducts = rest;
     const show = collectionProducts.slice(0,8);
     document.getElementById('before-list').innerHTML = show.map((p,i) =>
       `<div class="product-row"><span class="pos">${i+1}</span><span class="name">${p.title}</span></div>`
     ).join('');
-    const reordered = [...promoted, ...rest].slice(0,8);
+    const reordered = [...promotedProducts, ...restProducts].slice(0,8);
     document.getElementById('after-list').innerHTML = reordered.map((p,i) => {
-      const isP = promoted.includes(p);
+      const isP = promotedProducts.includes(p);
       return `<div class="product-row ${isP?'promoted':''}"><span class="pos">${i+1}</span><span class="name">${p.title}</span>${isP?'<span class="badge">top seller</span>':''}</div>`;
     }).join('');
     const btn = document.getElementById('apply-btn');
@@ -493,13 +494,13 @@
     if (isSmart) {
       btn.classList.add('hidden');
       dupBtn.classList.remove('hidden');
-      dupBtn.textContent = `📋 Duplicate "${selectedCollection.title}" as manual & push ${promoted.length} top seller${promoted.length!==1?'s':''} to front`;
-      dupBtn.disabled = promoted.length === 0;
+      dupBtn.textContent = `📋 Duplicate "${selectedCollection.title}" as manual & push ${promotedProducts.length} top seller${promotedProducts.length!==1?'s':'' to front`;
+      dupBtn.disabled = promotedProducts.length === 0;
     } else {
       btn.classList.remove('hidden');
       dupBtn.classList.add('hidden');
-      btn.textContent = `Push ${promoted.length} top seller${promoted.length!==1?'s':''} to front of "${selectedCollection.title}"`;
-      btn.disabled = promoted.length === 0;
+      btn.textContent = `Push ${promotedProducts.length} top seller${promotedProducts.length!==1?'s':''} to front of "${selectedCollection.title}"`;
+      btn.disabled = promotedProducts.length === 0;
     }
 
     // Debug: log first few from each side
@@ -519,8 +520,7 @@
     }
 
     // Show unmatched titles
-    const matchedTitles = new Set(promoted.map(p => p.title.toLowerCase()));
-    const unmatched = skuList.filter(s => !collectionProducts.some(p => p.title && p.title.toLowerCase() === s.toLowerCase()));
+    const unmatched = skuList.filter(s => !collectionProducts.some(p => p.title && (p.title.toLowerCase() === s.toLowerCase() || p.title.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(p.title.toLowerCase()))));
     const unmatchedDiv = document.getElementById('unmatched-list');
     if (unmatched.length > 0) {
       unmatchedDiv.innerHTML = `<div style="margin-top:10px;padding:10px;background:var(--warn-bg, #fffbf0);border:1px solid #ffc453;border-radius:8px;font-size:12px;">
@@ -534,17 +534,18 @@
 
   function getReordered() {
     const promoted = [], rest = [];
-    const toroProduct = collectionProducts.find(p => p.title && p.title.toLowerCase().includes('toro'));
-    const toroSku = skuList.find(s => s.toLowerCase().includes('toro'));
-    console.log('AT MATCH TIME - Toro product:', JSON.stringify(toroProduct?.title));
-    console.log('AT MATCH TIME - Toro sku:', JSON.stringify(toroSku));
-    if (toroProduct && toroSku) console.log('AT MATCH TIME - includes:', toroProduct.title.toLowerCase().includes(toroSku.toLowerCase()));
     collectionProducts.forEach(p => {
-      const isTop = skuList.some(s => p.title && (p.title.toLowerCase() === s.toLowerCase() || p.title.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(p.title.toLowerCase())));
-      (isTop ? promoted : rest).push(p);
+      const matchIndex = skuList.findIndex(s => p.title && (p.title.toLowerCase() === s.toLowerCase() || p.title.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(p.title.toLowerCase())));
+      if (matchIndex !== -1) {
+        promoted.push({ product: p, rank: matchIndex });
+      } else {
+        rest.push(p);
+      }
     });
-    console.log('AT MATCH TIME - promoted count:', promoted.length);
-    return [...promoted, ...rest];
+    promoted.sort((a, b) => a.rank - b.rank);
+    const promotedProducts = promoted.map(x => x.product);
+    const restProducts = rest;
+    return [...promoted.map(x => x.product), ...rest];
   }
 
   async function applyReorder() {
