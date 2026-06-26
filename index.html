@@ -370,7 +370,7 @@
 
   function parseSkus() {
     const raw = document.getElementById('sku-input').value;
-    const lines = raw.split('\n').map(l => l.trim().replace(/^[\s"']+|[\s"']+$/g,'').replace(/^"|"$/g,'')).filter(l => l && l.toLowerCase() !== 'title' && l.toLowerCase() !== 'handle');
+    const lines = raw.split('\n').map(l => l.trim().replace(/^[\s"',]+|[\s"',]+$/g,'')).filter(l => l && l.toLowerCase() !== 'title' && l.toLowerCase() !== 'handle');
     lines.forEach(l => { if (!skuList.includes(l)) skuList.push(l); });
     renderTags();
     document.getElementById('sku-input').value = '';
