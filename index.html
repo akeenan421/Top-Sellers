@@ -418,12 +418,13 @@
       document.getElementById('col-loading').classList.add('hidden');
       const list = document.getElementById('collection-list');
       if (!collections.length) { list.innerHTML = '<p style="font-size:13px;color:#6d7175">No collections found.</p>'; return; }
-      list.innerHTML = collections.map(c =>
-        `<div class="col-item" id="col-${c.id}" onclick="selectCollection(${c.id},'${c.title.replace(/'/g,"\\'")}')">
-          📁 ${c.title}
-          <span style="font-size:11px;color:#6d7175;margin-left:auto">${c.products_count||''} products</span>
-        </div>`
-      ).join('');
+      list.innerHTML = collections.map(c => {
+        const safeTitle = c.title.replace(/'/g, "\\'");
+        return '<div class="col-item" id="col-' + c.id + '" onclick="selectCollection(' + c.id + ',\'' + safeTitle + '\')">' +
+          '\uD83D\uDCC1 ' + c.title +
+          '<span style="font-size:11px;color:#6d7175;margin-left:auto">' + (c.products_count||'') + ' products</span>' +
+          '</div>';
+      }).join('');
     } catch(e) {
       showStatus('col-loading', 'error', '⚠️ Could not load collections. HTTP error: ' + e.message);
     }
@@ -494,7 +495,7 @@
     if (isSmart) {
       btn.classList.add('hidden');
       dupBtn.classList.remove('hidden');
-      dupBtn.textContent = `📋 Duplicate "${selectedCollection.title}" as manual & push ${promotedProducts.length} top seller${promotedProducts.length!==1?'s':'' to front`;
+      dupBtn.textContent = `📋 Duplicate "${selectedCollection.title}" as manual & push ${promotedProducts.length} top seller${promotedProducts.length!==1?'s':''} to front`;
       dupBtn.disabled = promotedProducts.length === 0;
     } else {
       btn.classList.remove('hidden');
@@ -523,10 +524,8 @@
     const unmatched = skuList.filter(s => !collectionProducts.some(p => p.title && (p.title.toLowerCase() === s.toLowerCase() || p.title.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(p.title.toLowerCase()))));
     const unmatchedDiv = document.getElementById('unmatched-list');
     if (unmatched.length > 0) {
-      unmatchedDiv.innerHTML = `<div style="margin-top:10px;padding:10px;background:var(--warn-bg, #fffbf0);border:1px solid #ffc453;border-radius:8px;font-size:12px;">
-        <strong>⚠️ ${unmatched.length} title${unmatched.length!==1?'s':''} from your CSV not found in this collection:</strong>
-        <div style="margin-top:6px;color:#6d7175;max-height:80px;overflow-y:auto;">${unmatched.slice(0,20).map(s => `<div>${s}</div>`).join('')}${unmatched.length>20?`<div>...and ${unmatched.length-20} more</div>`:''}</div>
-      </div>`;
+      const unmatchedHtml = unmatched.slice(0,20).map(s => '<div>' + s + '</div>').join('') + (unmatched.length > 20 ? '<div>...and ' + (unmatched.length - 20) + ' more</div>' : '');
+      unmatchedDiv.innerHTML = '<div style="margin-top:10px;padding:10px;background:#fffbf0;border:1px solid #ffc453;border-radius:8px;font-size:12px;"><strong>⚠️ ' + unmatched.length + ' title' + (unmatched.length !== 1 ? 's' : '') + ' from your CSV not found in this collection:</strong><div style="margin-top:6px;color:#6d7175;max-height:80px;overflow-y:auto;">' + unmatchedHtml + '</div></div>';
     } else {
       unmatchedDiv.innerHTML = '';
     }
