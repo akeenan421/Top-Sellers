@@ -468,10 +468,16 @@
   function renderPreview() {
     document.getElementById('preview-card').classList.remove('hidden');
     const promoted = [], rest = [];
+    const toroProduct = collectionProducts.find(p => p.title && p.title.toLowerCase().includes('toro'));
+    const toroSku = skuList.find(s => s.toLowerCase().includes('toro'));
+    console.log('AT MATCH TIME - Toro product:', JSON.stringify(toroProduct?.title));
+    console.log('AT MATCH TIME - Toro sku:', JSON.stringify(toroSku));
+    if (toroProduct && toroSku) console.log('AT MATCH TIME - includes:', toroProduct.title.toLowerCase().includes(toroSku.toLowerCase()));
     collectionProducts.forEach(p => {
       const isTop = skuList.some(s => p.title && (p.title.toLowerCase() === s.toLowerCase() || p.title.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(p.title.toLowerCase())));
       (isTop ? promoted : rest).push(p);
     });
+    console.log('AT MATCH TIME - promoted count:', promoted.length);
     const show = collectionProducts.slice(0,8);
     document.getElementById('before-list').innerHTML = show.map((p,i) =>
       `<div class="product-row"><span class="pos">${i+1}</span><span class="name">${p.title}</span></div>`
@@ -528,10 +534,16 @@
 
   function getReordered() {
     const promoted = [], rest = [];
+    const toroProduct = collectionProducts.find(p => p.title && p.title.toLowerCase().includes('toro'));
+    const toroSku = skuList.find(s => s.toLowerCase().includes('toro'));
+    console.log('AT MATCH TIME - Toro product:', JSON.stringify(toroProduct?.title));
+    console.log('AT MATCH TIME - Toro sku:', JSON.stringify(toroSku));
+    if (toroProduct && toroSku) console.log('AT MATCH TIME - includes:', toroProduct.title.toLowerCase().includes(toroSku.toLowerCase()));
     collectionProducts.forEach(p => {
       const isTop = skuList.some(s => p.title && (p.title.toLowerCase() === s.toLowerCase() || p.title.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(p.title.toLowerCase())));
       (isTop ? promoted : rest).push(p);
     });
+    console.log('AT MATCH TIME - promoted count:', promoted.length);
     return [...promoted, ...rest];
   }
 
